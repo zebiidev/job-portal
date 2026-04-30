@@ -1,20 +1,50 @@
 "use client";
 import Link from "next/link";
-import React from "react";
-
-const stats = [
-  { label: "Applications", value: 12, icon: "📄" },
-  { label: "Interviews", value: 2, icon: "📅" },
-  { label: "Saved Jobs", value: 5, icon: "❤️" },
-];
+import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 export default function Dashboard() {
+  const { data: session } = useSession();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const res = await fetch("/api/user/dashboard");
+        const json = await res.json();
+        if (res.ok) {
+          setData(json);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
+
+  const stats = [
+    { label: "Applications", value: data?.stats?.totalApplications || 0, icon: "📄" },
+    { label: "Interviews", value: data?.stats?.totalInterviews || 0, icon: "📅" },
+    { label: "Saved Jobs", value: data?.stats?.totalSavedJobs || 0, icon: "❤️" },
+  ];
+
   return (
     <div className="min-h-screen rounded-md bg-gray-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <h1 className="text-2xl font-semibold text-gray-800">
-          Welcome back, Ahmed!s
+          Welcome back, {session?.user?.name || "User"}!
         </h1>
 
         {/* Stats */}
@@ -32,13 +62,13 @@ export default function Dashboard() {
             </div>
           ))}
 
-          {/* Profile Completion */}
+          {/* Profile Completion - Mock for now as it needs profile calculation */}
           <div className="bg-white p-4 rounded-lg shadow flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Profile</p>
               <p className="text-xl font-bold">80% Complete</p>
             </div>
-            <div className="w-10 h-10 rounded-full border-4 border-green-500 flex items-center justify-center text-sm font-semibold">
+            <div className="w-10 h-10 rounded-full border-4 border-emerald-500 flex items-center justify-center text-sm font-semibold text-emerald-600">
               80%
             </div>
           </div>
@@ -61,98 +91,69 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="text-gray-700">
-                  <tr className="border-t">
-                    <td className="py-2">Software Engineer</td>
-                    <td>TechCorp</td>
-                    <td>2 days ago</td>
-                    <td>
-                      <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-700">
-                        Under Review
-                      </span>
-                    </td>
-                  </tr>
-                  <tr className="border-t">
-                    <td className="py-2">Marketing Specialist</td>
-                    <td>Creative Ltd</td>
-                    <td>1 week ago</td>
-                    <td>
-                      <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">
-                        Interview
-                      </span>
-                    </td>
-                  </tr>
-                  <tr className="border-t">
-                    <td className="py-2">Data Analyst</td>
-                    <td>DataWorks</td>
-                    <td>2 weeks ago</td>
-                    <td>
-                      <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-700">
-                        Rejected
-                      </span>
-                    </td>
-                  </tr>
+                  {data?.recentApplications?.length > 0 ? (
+                    data.recentApplications.map((app) => (
+                      <tr key={app.id} className="border-t">
+                        <td className="py-3">{app.job_title}</td>
+                        <td className="py-3">{app.company_name || "Unknown"}</td>
+                        <td className="py-3">{new Date(app.applied_at).toLocaleDateString()}</td>
+                        <td className="py-3">
+                          <span className={`px-2 py-1 text-xs rounded capitalize
+                            ${app.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                              app.status === 'interview' ? 'bg-blue-100 text-blue-700' :
+                              app.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                              'bg-green-100 text-green-700'
+                            }`}>
+                            {app.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="py-4 text-center text-gray-500">
+                        No recent applications found.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
 
-            <button className="text-blue-600 text-sm mt-3 hover:underline">
+            <Link href="/dashboard/user/applications" className="inline-block text-blue-600 text-sm mt-3 hover:underline">
               View All →
-            </button>
-          </div>
-
-          {/* Saved Jobs */}
-          <div className="bg-white rounded-lg shadow p-4">
-            <h2 className="font-semibold text-lg mb-4">Saved Jobs</h2>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Project Manager</p>
-                  <p className="text-sm text-gray-500">BuildWorks</p>
-                </div>
-                <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded">
-                  Apply Now
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Graphic Designer</p>
-                  <p className="text-sm text-gray-500">DesignHub</p>
-                </div>
-                <button className="px-3 py-1 text-sm border rounded">
-                  Remove
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Upcoming Interview */}
-          <div className="bg-white rounded-lg shadow p-4">
-            <h2 className="font-semibold mb-2">Upcoming Interview</h2>
-            <p className="text-sm text-gray-600">
-              TechCorp – Software Engineer
-            </p>
-            <p className="text-sm text-gray-500">Monday, March 25 | 10:00 AM</p>
-          </div>
-
-          {/* Complete Profile */}
-          <div className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
-            <div>
-              <h2 className="font-semibold mb-1">Complete Your Profile</h2>
-              <p className="text-sm text-gray-500">
-                Update your resume & details
-              </p>
-            </div>
-            <Link href="/dashboard/user/profile">
-              {" "}
-              <button className="bg-blue-600 text-white md:px-4 md:py-2 rounded">
-                Complete Now
-              </button>
             </Link>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Upcoming Interview */}
+            <div className="bg-white rounded-lg shadow p-4">
+              <h2 className="font-semibold mb-2">Upcoming Interview</h2>
+              {data?.stats?.totalInterviews > 0 ? (
+                <>
+                  <p className="text-sm text-gray-600">You have scheduled interviews!</p>
+                  <p className="text-sm text-gray-500 mt-1">Check your emails for details.</p>
+                </>
+              ) : (
+                <p className="text-sm text-gray-500">No upcoming interviews at the moment.</p>
+              )}
+            </div>
+
+            {/* Complete Profile */}
+            <div className="bg-white rounded-lg shadow p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="font-semibold mb-1">Complete Your Profile</h2>
+                <p className="text-sm text-gray-500">
+                  Update your resume & details
+                </p>
+              </div>
+              <Link href="/dashboard/user/profile">
+                <button className="bg-black text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-800 transition">
+                  Complete Now
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

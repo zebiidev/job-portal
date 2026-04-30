@@ -1,12 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import JobCard from "@/components/JobCard";
-import { jobs as staticJobs } from "@/lib/jobsData";
 
 const JobsListings = ({ filters = {} }) => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [usingStatic, setUsingStatic] = useState(false);
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -47,16 +45,12 @@ const JobsListings = ({ filters = {} }) => {
             tags: job.tags || [],
           }));
           setJobs(transformed);
-          setUsingStatic(false);
         } else {
-          // Fallback to static data if DB is empty
-          setJobs(staticJobs);
-          setUsingStatic(true);
+          setJobs([]);
         }
       } catch (error) {
         console.error("Error fetching jobs:", error);
-        setJobs(staticJobs);
-        setUsingStatic(true);
+        setJobs([]);
       } finally {
         setLoading(false);
       }
@@ -104,11 +98,6 @@ const JobsListings = ({ filters = {} }) => {
 
   return (
     <div>
-      {usingStatic && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-600">
-          Showing sample jobs. Real jobs will appear once posted by companies.
-        </div>
-      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {jobs.map((job) => (
           <JobCard key={job.id} job={job} />

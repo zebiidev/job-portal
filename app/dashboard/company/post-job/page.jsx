@@ -159,8 +159,8 @@ export default function PostJobForm() {
           >
             <option value="">Select</option>
             <option value="high-school">High School</option>
-            <option value="bachelor">Bachelor's Degree</option>
-            <option value="master">Master's Degree</option>
+            <option value="bachelor">Bachelor&apos;s Degree</option>
+            <option value="master">Master&apos;s Degree</option>
           </select>
         </div>
 

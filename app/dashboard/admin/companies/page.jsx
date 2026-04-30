@@ -1,36 +1,57 @@
 "use client";
-
 import Image from "next/image";
-import { Eye, CheckCircle, Ban, Trash2 } from "lucide-react";
-
-const companies = [
-  {
-    id: 1,
-    name: "TechNova",
-    email: "hr@technova.com",
-    logo: "/company-placeholder.svg",
-    jobs: 12,
-    status: "Approved",
-  },
-  {
-    id: 2,
-    name: "NextSoft",
-    email: "contact@nextsoft.io",
-    logo: "/company-placeholder.svg",
-    jobs: 5,
-    status: "Pending",
-  },
-  {
-    id: 3,
-    name: "InnoWorks",
-    email: "hr@innoworks.com",
-    logo: "/company-placeholder.svg",
-    jobs: 0,
-    status: "Blocked",
-  },
-];
+import React, { useEffect, useState } from "react";
+import { Trash2 } from "lucide-react";
 
 const AdminCompaniesPage = () => {
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      const res = await fetch("/api/admin/companies");
+      const data = await res.json();
+      if (res.ok) {
+        setCompanies(data.companies || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch companies:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this company and all their jobs? This action cannot be undone.")) return;
+
+    try {
+      const res = await fetch(`/api/admin/users?id=${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setCompanies(companies.filter(c => c.id !== id));
+      } else {
+        const data = await res.json();
+        alert(data.message || "Failed to delete company");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("An error occurred while deleting the company.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -55,10 +76,10 @@ const AdminCompaniesPage = () => {
                 Email
               </th>
               <th className="px-6 py-3 text-left font-medium text-gray-600">
-                Jobs
+                Industry
               </th>
               <th className="px-6 py-3 text-left font-medium text-gray-600">
-                Status
+                Jobs Posted
               </th>
               <th className="px-6 py-3 text-right font-medium text-gray-600">
                 Actions
@@ -67,16 +88,16 @@ const AdminCompaniesPage = () => {
           </thead>
 
           <tbody className="divide-y">
-            {companies.map((company) => (
+            {companies.length > 0 ? companies.map((company) => (
               <tr key={company.id} className="hover:bg-gray-50">
                 {/* Company */}
                 <td className="px-6 py-4 flex items-center gap-3">
                   <Image
-                    src={company.logo}
+                    src={company.logo || "/company-placeholder.svg"}
                     alt={company.name}
                     width={36}
                     height={36}
-                    className="rounded-md object-cover border"
+                    className="rounded-md object-cover border min-w-[36px] min-h-[36px]"
                   />
                   <span className="font-medium text-gray-800">
                     {company.name}
@@ -85,63 +106,33 @@ const AdminCompaniesPage = () => {
 
                 {/* Email */}
                 <td className="px-6 py-4 text-gray-500">{company.email}</td>
+                
+                {/* Industry */}
+                <td className="px-6 py-4 text-gray-500">{company.industry || "Not Specified"}</td>
 
                 {/* Jobs */}
-                <td className="px-6 py-4 font-medium">{company.jobs}</td>
-
-                {/* Status */}
-                <td className="px-6 py-4">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium
-                      ${
-                        company.status === "Approved"
-                          ? "bg-green-100 text-green-700"
-                          : company.status === "Pending"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-red-100 text-red-700"
-                      }
-                    `}
-                  >
-                    {company.status}
-                  </span>
-                </td>
+                <td className="px-6 py-4 font-medium">{company.jobs_count || 0}</td>
 
                 {/* Actions */}
                 <td className="px-6 py-4">
                   <div className="flex justify-end gap-3">
                     <button
-                      title="View"
-                      className="text-gray-500 hover:text-gray-900"
-                    >
-                      <Eye size={18} />
-                    </button>
-
-                    {company.status === "Pending" && (
-                      <button
-                        title="Approve"
-                        className="text-green-600 hover:text-green-800"
-                      >
-                        <CheckCircle size={18} />
-                      </button>
-                    )}
-
-                    <button
-                      title="Block"
-                      className="text-yellow-600 hover:text-yellow-800"
-                    >
-                      <Ban size={18} />
-                    </button>
-
-                    <button
+                      onClick={() => handleDelete(company.id)}
                       title="Delete"
-                      className="text-red-500 hover:text-red-700"
+                      className="text-gray-400 hover:text-red-600 transition-colors"
                     >
                       <Trash2 size={18} />
                     </button>
                   </div>
                 </td>
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                  No companies found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

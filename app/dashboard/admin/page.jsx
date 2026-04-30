@@ -1,43 +1,59 @@
 "use client";
-
-import { Users, Building2, Briefcase, FileText } from "lucide-react";
-
-const stats = [
-  {
-    title: "Total Users",
-    value: "12,450",
-    icon: Users,
-  },
-  {
-    title: "Companies",
-    value: "1,280",
-    icon: Building2,
-  },
-  {
-    title: "Jobs Posted",
-    value: "3,420",
-    icon: Briefcase,
-  },
-  {
-    title: "Applications",
-    value: "28,900",
-    icon: FileText,
-  },
-];
-
-const recentUsers = [
-  { name: "Ahmed Ali", email: "ahmed@mail.com", role: "Job Seeker" },
-  { name: "Sarah Khan", email: "sarah@mail.com", role: "Company" },
-  { name: "John Smith", email: "john@mail.com", role: "Job Seeker" },
-];
-
-const recentJobs = [
-  { title: "Frontend Developer", company: "Google" },
-  { title: "Backend Engineer", company: "Amazon" },
-  { title: "UI/UX Designer", company: "Figma" },
-];
+import React, { useEffect, useState } from "react";
+import { Users, Building2, Briefcase, FileText, Loader2 } from "lucide-react";
 
 const AdminDashboardPage = () => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/admin/stats");
+        const json = await res.json();
+        if (res.ok) {
+          setData(json);
+        }
+      } catch (error) {
+        console.error("Failed to fetch admin stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const stats = [
+    {
+      title: "Total Users",
+      value: data?.stats?.totalUsers || 0,
+      icon: Users,
+    },
+    {
+      title: "Companies",
+      value: data?.stats?.totalCompanies || 0,
+      icon: Building2,
+    },
+    {
+      title: "Jobs Posted",
+      value: data?.stats?.totalJobs || 0,
+      icon: Briefcase,
+    },
+    {
+      title: "Applications",
+      value: data?.stats?.totalApplications || 0,
+      icon: FileText,
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Page Title */}
@@ -55,13 +71,13 @@ const AdminDashboardPage = () => {
           return (
             <div
               key={stat.title}
-              className="bg-white rounded-xl p-5 shadow-sm border"
+              className="bg-white rounded-xl p-5 shadow-sm border hover:shadow-md transition-shadow"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">{stat.title}</p>
                   <h2 className="text-2xl font-semibold text-gray-900">
-                    {stat.value}
+                    {stat.value.toLocaleString()}
                   </h2>
                 </div>
                 <div className="p-3 rounded-lg bg-emerald-500/10 text-emerald-600">
@@ -77,41 +93,53 @@ const AdminDashboardPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Users */}
         <div className="bg-white rounded-xl shadow-sm border">
-          <div className="p-4 border-b">
+          <div className="p-4 border-b flex justify-between items-center">
             <h3 className="font-semibold text-gray-900">Recent Users</h3>
+            <span className="text-xs text-gray-400">Last 5</span>
           </div>
-          <div className="divide-y">
-            {recentUsers.map((user, idx) => (
-              <div key={idx} className="p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-800">{user.name}</p>
-                  <p className="text-sm text-gray-500">{user.email}</p>
+          <div className="divide-y max-h-[400px] overflow-auto">
+            {data?.recentUsers?.length > 0 ? (
+              data.recentUsers.map((user, idx) => (
+                <div key={idx} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                  <div>
+                    <p className="font-medium text-gray-800">{user.name}</p>
+                    <p className="text-sm text-gray-500">{user.email}</p>
+                  </div>
+                  <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 capitalize">
+                    {user.role?.replace("-", " ")}
+                  </span>
                 </div>
-                <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
-                  {user.role}
-                </span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="p-8 text-center text-gray-500 text-sm">No recent users found.</p>
+            )}
           </div>
         </div>
 
         {/* Recent Jobs */}
         <div className="bg-white rounded-xl shadow-sm border">
-          <div className="p-4 border-b">
+          <div className="p-4 border-b flex justify-between items-center">
             <h3 className="font-semibold text-gray-900">Recent Jobs</h3>
+            <span className="text-xs text-gray-400">Last 5</span>
           </div>
-          <div className="divide-y">
-            {recentJobs.map((job, idx) => (
-              <div key={idx} className="p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-800">{job.title}</p>
-                  <p className="text-sm text-gray-500">{job.company}</p>
+          <div className="divide-y max-h-[400px] overflow-auto">
+            {data?.recentJobs?.length > 0 ? (
+              data.recentJobs.map((job, idx) => (
+                <div key={idx} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                  <div className="max-w-[70%]">
+                    <p className="font-medium text-gray-800 truncate">{job.title}</p>
+                    <p className="text-sm text-gray-500 truncate">{job.company_name || "Unknown Company"}</p>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    job.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"
+                  } capitalize`}>
+                    {job.status}
+                  </span>
                 </div>
-                <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                  Active
-                </span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="p-8 text-center text-gray-500 text-sm">No recent jobs posted.</p>
+            )}
           </div>
         </div>
       </div>
@@ -120,3 +148,4 @@ const AdminDashboardPage = () => {
 };
 
 export default AdminDashboardPage;
+
