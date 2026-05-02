@@ -91,6 +91,24 @@ export async function GET(req) {
     );
   } catch (error) {
     console.error("Error fetching jobs:", error);
+
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      ["ECONNREFUSED", "ENOTFOUND", "ETIMEDOUT", "EHOSTUNREACH"].includes(
+        error.code,
+      )
+    ) {
+      return NextResponse.json(
+        {
+          message:
+            "Database unavailable. Start MySQL and verify DB_* env vars in .env.",
+        },
+        { status: 503 },
+      );
+    }
+
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }

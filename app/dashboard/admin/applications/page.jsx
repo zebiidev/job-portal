@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Eye, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import Link from "next/link";
 
 const AdminApplicationsPage = () => {
@@ -72,61 +72,74 @@ const AdminApplicationsPage = () => {
           </thead>
 
           <tbody className="divide-y">
-            {applications.length > 0 ? applications.map((app) => (
-              <tr key={app.id} className="hover:bg-gray-50">
-                {/* Candidate */}
-                <td className="px-6 py-4">
-                  <div className="font-medium text-gray-800">{app.applicant_name}</div>
-                  <div className="text-xs text-gray-500">{app.applicant_email}</div>
-                </td>
+            {applications.length > 0 ? (
+              applications.map((app) => (
+                <tr key={app.id} className="hover:bg-gray-50">
+                  {/* Candidate */}
+                  <td className="px-6 py-4">
+                    <div className="font-medium text-gray-800">
+                      {app.applicant_name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {app.applicant_email}
+                    </div>
+                  </td>
 
-                {/* Job */}
-                <td className="px-6 py-4 text-gray-600">{app.job_title}</td>
+                  {/* Job */}
+                  <td className="px-6 py-4 text-gray-600">{app.job_title}</td>
 
-                {/* Company */}
-                <td className="px-6 py-4 text-gray-600">{app.company_name || "Unknown"}</td>
+                  {/* Company */}
+                  <td className="px-6 py-4 text-gray-600">
+                    {app.company_name || "Unknown"}
+                  </td>
 
-                {/* Applied On */}
-                <td className="px-6 py-4 text-gray-600">
-                  {new Date(app.applied_at).toLocaleDateString()}
-                </td>
+                  {/* Applied On */}
+                  <td className="px-6 py-4 text-gray-600">
+                    {new Date(app.applied_at).toLocaleDateString()}
+                  </td>
 
-                {/* Status */}
-                <td className="px-6 py-4">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium capitalize
+                  {/* Status */}
+                  <td className="px-6 py-4">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium capitalize
                       ${
-                        app.status === "accepted" || app.status === "shortlisted"
+                        app.status === "accepted" ||
+                        app.status === "shortlisted"
                           ? "bg-green-100 text-green-700"
-                          : app.status === "pending" || app.status === "interview"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-red-100 text-red-700"
+                          : app.status === "pending" ||
+                              app.status === "interview"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-red-100 text-red-700"
                       }
                     `}
-                  >
-                    {app.status}
-                  </span>
-                </td>
+                    >
+                      {app.status}
+                    </span>
+                  </td>
 
-                {/* Actions */}
-                <td className="px-6 py-4">
-                  <div className="flex justify-end gap-3">
-                    {app.resume_url && (
-                      <Link
-                        href={app.resume_url}
-                        target="_blank"
-                        title="View Resume"
-                        className="text-gray-500 hover:text-gray-900 transition-colors"
-                      >
-                        <FileText size={18} />
-                      </Link>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            )) : (
+                  {/* Actions */}
+                  <td className="px-6 py-4">
+                    <div className="flex justify-end gap-3">
+                      {app.resume_url && (
+                        <Link
+                          href={app.resume_url}
+                          target="_blank"
+                          title="View Resume"
+                          className="text-gray-500 hover:text-gray-900 transition-colors"
+                        >
+                          <FileText size={18} />
+                        </Link>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
               <tr>
-                <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                <td
+                  colSpan="6"
+                  className="px-6 py-8 text-center text-gray-500"
+                >
                   No applications found.
                 </td>
               </tr>
@@ -139,3 +152,4 @@ const AdminApplicationsPage = () => {
 };
 
 export default AdminApplicationsPage;
+

@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\"",
+    "check": "npm run lint && npm run build"
   },
   "dependencies": {
     "@tiptap/extension-link": "^3.14.0",
