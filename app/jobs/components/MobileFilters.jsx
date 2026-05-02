@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { Suspense } from "react";
 import Filters from "./Filters";
 import { FiX } from "react-icons/fi";
 
@@ -29,7 +29,9 @@ const MobileFilters = ({ open, onClose }) => {
 
         {/* Filters */}
         <div className="h-[calc(100vh-64px)] overflow-y-auto">
-          <Filters isMobile />
+          <Suspense fallback={null}>
+            <Filters isMobile />
+          </Suspense>
         </div>
       </div>
     </>

@@ -1,9 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import { FiFilter } from "react-icons/fi";
 import JobsListings from "./components/JobsListings";
 import Filters from "./components/Filters";
 import MobileFilters from "./components/MobileFilters";
+
+export const dynamic = "force-dynamic";
 
 const JobsPage = () => {
   const [openFilters, setOpenFilters] = useState(false);
@@ -27,11 +29,19 @@ const JobsPage = () => {
       </div>
 
       {/* Mobile Drawer */}
-      <MobileFilters open={openFilters} onClose={() => setOpenFilters(false)} onFilterChange={handleFilterChange} />
+      <Suspense fallback={null}>
+        <MobileFilters
+          open={openFilters}
+          onClose={() => setOpenFilters(false)}
+          onFilterChange={handleFilterChange}
+        />
+      </Suspense>
 
       {/* Page Layout */}
       <div className="flex">
-        <Filters onFilterChange={handleFilterChange} />
+        <Suspense fallback={null}>
+          <Filters onFilterChange={handleFilterChange} />
+        </Suspense>
 
         {/* Job Listings */}
         <div className="flex-1 p-4">
